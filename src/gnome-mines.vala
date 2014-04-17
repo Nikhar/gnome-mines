@@ -49,7 +49,14 @@ public class Mines : Gtk.Application
     private bool window_skip_configure;
     
     /* Game history */
-    private History history;
+    private Scores.Scores highscores;
+
+    const Scores.ScoresCategory[] score_categories = {
+      {"8x8", N_("8×8 (10 mines)")},
+      {"16x16", N_("16×16 (40 mines)")},
+      {"30x16", N_("30×16 (99 mines)")},
+      {"custom", N_("FIXME FIXME")},
+    };
 
     /* Minefield being played */
     private Minefield minefield;
@@ -170,8 +177,8 @@ public class Mines : Gtk.Application
         startup_custom_game_screen ();
         view_box.pack_start (custom_game_screen, false, false);
 
-        history = new History (Path.build_filename (Environment.get_user_data_dir (), "gnome-mines", "history"));
-        history.load ();
+        Scores.scores_startup ();
+        highscores = new Scores.Scores ("gnome-mines", score_categories, null, null, 0, Scores.ScoreStyle.PLAIN_DESCENDING);
 
         buttons_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 4);
         buttons_box.margin_right = 6;
@@ -434,11 +441,10 @@ public class Mines : Gtk.Application
         flag_label.set_text ("%u/%u".printf (minefield.n_flags, minefield.n_mines));
     }
 
-    private int show_scores (HistoryEntry? selected_entry = null, bool show_close = false)
+    private int show_scores ()
     {
-        var dialog = new ScoreDialog (history, selected_entry, show_close);
-        dialog.modal = true;
-        dialog.transient_for = window;
+        var dialog = new Scores.ScoresDialog (window, highscores, _("Best Times"));
+        dialog.set_category_description (_("Size:"));
 
         var result = dialog.run ();
         dialog.destroy ();
@@ -622,13 +628,9 @@ public class Mines : Gtk.Application
 
     private void cleared_cb (Minefield minefield)
     {
-        var date = new DateTime.now_local ();
-        var duration = (uint) (minefield.elapsed + 0.5);
-        var entry = new HistoryEntry (date, minefield.width, minefield.height, minefield.n_mines, duration);
-        history.add (entry);
-        history.save ();
+        highscores.add_time_score (minefield.elapsed / 60.0);
 
-        if (show_scores (entry, true) == Gtk.ResponseType.OK)
+        if (show_scores () == Gtk.ResponseType.OK)
             show_new_game_screen ();
         else
         {

@@ -2,11 +2,11 @@ bin_PROGRAMS = gnome-mines
 
 gnome_mines_SOURCES =	\
 	config.vapi	\
+	libgames-scores.vapi \
 	gnome-mines.vala \
 	history.vala \
 	minefield.vala \
-	minefield-view.vala \
-	score-dialog.vala
+	minefield-view.vala
 
 gnome_mines_CFLAGS = \
 	-DVERSION=\"$(VERSION)\" \
