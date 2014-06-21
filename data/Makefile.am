@@ -5,8 +5,21 @@ gsettings_SCHEMAS = org.gnome.mines.gschema.xml
 
 man_MANS = gnome-mines.6
 
-pixmapdir   = $(datadir)/gnome-mines
-pixmap_DATA = flag.svg flag-question.svg mine.svg bang.svg warning.svg
+pixmapdir   = $(pkgdatadir)
+pixmap_DATA = mine.svg bang.svg warning.svg \
+            1mine.svg 2mines.svg 3mines.svg 4mines.svg \
+            5mines.svg 6mines.svg 7mines.svg 8mines.svg \
+            flag-symbolic.svg flag.svg flag-question.svg
+
+gnome-mines.css: gnome-mines.css.in Makefile
+	$(AM_V_GEN) sed -e "s|\@pkgdatadir\@|$(pkgdatadir)|" $< > $@
+
+cssdir = $(pkgdatadir)
+css_in_files = gnome-mines.css.in
+css_DATA = $(css_in_files:.css.in=.css)
+
+uidir = $(pkgdatadir)
+ui_DATA = interface.ui
 
 desktopdir = $(datadir)/applications
 desktop_in_files = gnome-mines.desktop.in
@@ -23,11 +36,14 @@ EXTRA_DIST = \
              $(gsettings_SCHEMAS) \
              $(desktop_in_files) \
              $(man_MANS) \
-             $(pixmap_DATA)
+             $(pixmap_DATA) \
+             $(css_in_files) \
+             $(ui_DATA)
 
 CLEANFILES = \
 	$(appdata_DATA)	\
-	$(desktop_DATA)
+	$(desktop_DATA) \
+	$(css_DATA)
 
 check-local: $(appdata_DATA) $(desktop_DATA)
 	$(APPDATA_VALIDATE) $(appdata_DATA)
