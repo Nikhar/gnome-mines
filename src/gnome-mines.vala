@@ -58,6 +58,7 @@ public class Mines : Gtk.Application
     private bool window_skip_configure;
 
     /* Game history */
+    private Games.Scores.Context? context = null;
     private History history;
 
     /* Minefield being played */
@@ -161,6 +162,8 @@ public class Mines : Gtk.Application
             window.maximize ();
         add_window (window);
 
+
+
         var desktop = Environment.get_variable ("XDG_CURRENT_DESKTOP");
         if (desktop == null || desktop != "Unity")
         {
@@ -246,6 +249,8 @@ public class Mines : Gtk.Application
 
         history = new History (Path.build_filename (Environment.get_user_data_dir (), "gnome-mines", "history"));
         history.load ();
+
+	context = new Games.Scores.Context (_("Mines"), "Game", window, Games.Scores.Style.TIME_ASCENDING);
 
         flag_label = (Gtk.Label) ui_builder.get_object ("flag_label");
         clock_label = (Gtk.Label) ui_builder.get_object ("clock_label");
@@ -441,14 +446,17 @@ public class Mines : Gtk.Application
 
     private int show_scores (HistoryEntry? selected_entry = null, bool show_close = false)
     {
-        var dialog = new ScoreDialog (history, selected_entry, show_close);
+        /*var dialog = new ScoreDialog (history, selected_entry, show_close);
         dialog.modal = true;
         dialog.transient_for = window;
 
         var result = dialog.run ();
         dialog.destroy ();
 
-        return result;
+        return result;*/
+	print ("Dialog\n");
+	context.run_dialog ();
+	return 1;
     }
 
     private void scores_cb ()
@@ -635,12 +643,12 @@ public class Mines : Gtk.Application
 
     private void cleared_cb (Minefield minefield)
     {
-        var date = new DateTime.now_local ();
+        /*var date = new DateTime.now_local ();
         var duration = (uint) (minefield.elapsed + 0.5);
         var entry = new HistoryEntry (date, minefield.width, minefield.height, minefield.n_mines, duration);
         history.add (entry);
         history.save ();
-
+	
         if (show_scores (entry, true) == Gtk.ResponseType.OK)
             show_new_game_screen ();
         else
@@ -653,7 +661,11 @@ public class Mines : Gtk.Application
             high_scores_button.show ();
             pause_action.set_enabled (false);
             play_pause_button.hide ();
-        }
+        }*/
+        var duration = (uint) (minefield.elapsed + 0.5);
+	string key = minefield.width.to_string () + minefield.height.to_string () + minefield.n_mines.to_string ();
+	context.add_score (duration, new Games.Scores.Category (key, key)) ;
+        show_new_game_screen ();
     }
 
     private void clock_started_cb ()
