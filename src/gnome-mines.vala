@@ -57,9 +57,8 @@ public class Mines : Gtk.Application
     /* true when the next configure event should be ignored. */
     private bool window_skip_configure;
 
-    /* Game history */
+    /* Game scores */
     private Games.Scores.Context? context = null;
-    private History history;
 
     /* Minefield being played */
     private Minefield minefield;
@@ -246,9 +245,6 @@ public class Mines : Gtk.Application
 
         /* Initialize Custom Game Screen */
         startup_custom_game_screen (ui_builder);
-
-        history = new History (Path.build_filename (Environment.get_user_data_dir (), "gnome-mines", "history"));
-        history.load ();
 
 	context = new Games.Scores.Context (_("Mines"), "Game", window, Games.Scores.Style.TIME_ASCENDING);
 
@@ -444,9 +440,9 @@ public class Mines : Gtk.Application
         flag_label.set_text ("%u/%u".printf (minefield.n_flags, minefield.n_mines));
     }
 
-    private int show_scores (HistoryEntry? selected_entry = null, bool show_close = false)
+    private int show_scores ()
     {
-        /*var dialog = new ScoreDialog (history, selected_entry, show_close);
+        /*
         dialog.modal = true;
         dialog.transient_for = window;
 
