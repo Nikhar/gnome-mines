@@ -58,7 +58,7 @@ public class Mines : Gtk.Application
     private bool window_skip_configure;
 
     /* Game scores */
-    private Games.Scores.Context? context = null;
+    private Games.Scores.Context context;
 
     /* Minefield being played */
     private Minefield minefield;
@@ -248,6 +248,8 @@ public class Mines : Gtk.Application
 
 	context = new Games.Scores.Context (_("Mines"), "Game", window, Games.Scores.Style.TIME_ASCENDING);
 
+	context.request_category.connect  (create_category_from_key);
+
         flag_label = (Gtk.Label) ui_builder.get_object ("flag_label");
         clock_label = (Gtk.Label) ui_builder.get_object ("clock_label");
 
@@ -260,6 +262,14 @@ public class Mines : Gtk.Application
 
         if (game_mode != -1)
             start_game ();
+    }
+
+    private Games.Scores.Category? create_category_from_key (string key)
+    {
+	    var tokens = key.split ("-");
+	    if (tokens.length != 3)
+		    return null;
+	    return new Games.Scores.Category (key, _(tokens[0] + " × " + tokens[1] + ", " + tokens[2] + " mines"));
     }
 
     private void startup_new_game_screen (Gtk.Builder builder)
@@ -442,16 +452,7 @@ public class Mines : Gtk.Application
 
     private int show_scores ()
     {
-        /*
-        dialog.modal = true;
-        dialog.transient_for = window;
-
-        var result = dialog.run ();
-        dialog.destroy ();
-
-        return result;*/
-	print ("Dialog\n");
-	context.run_dialog ();
+        context.run_dialog ();
 	return 1;
     }
 
@@ -659,8 +660,15 @@ public class Mines : Gtk.Application
             play_pause_button.hide ();
         }*/
         var duration = (uint) (minefield.elapsed + 0.5);
-	string key = minefield.width.to_string () + minefield.height.to_string () + minefield.n_mines.to_string ();
-	context.add_score (duration, new Games.Scores.Category (key, key)) ;
+	string key = minefield.width.to_string () + "-" + minefield.height.to_string () + "-" + minefield.n_mines.to_string ();
+	try
+	{
+		context.add_score (duration, create_category_from_key (key)) ;
+	}
+	catch (Error e)
+    	{
+		warning ("%s", e.message);
+	}
         show_new_game_screen ();
     }
 
